@@ -1,0 +1,2 @@
+# 忽略BIRD_Data/data目录下的文件
+BIRD_Data/data/*

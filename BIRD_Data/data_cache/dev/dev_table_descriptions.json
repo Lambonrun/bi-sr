@@ -1,0 +1,377 @@
+[
+  {
+    "database": "debit_card_specializing",
+    "table": "customers",
+    "full_text": "Database: debit_card_specializing, Table: customers, Description: Customer profiles with segmentation and currency in Gas station sales tracking"
+  },
+  {
+    "database": "debit_card_specializing",
+    "table": "gasstations",
+    "full_text": "Database: debit_card_specializing, Table: gasstations, Description: Gas station locations and organizational details in Gas station sales tracking"
+  },
+  {
+    "database": "debit_card_specializing",
+    "table": "products",
+    "full_text": "Database: debit_card_specializing, Table: products, Description: Stores product details and identifiers in Gas station sales tracking"
+  },
+  {
+    "database": "debit_card_specializing",
+    "table": "transactions_1k",
+    "full_text": "Database: debit_card_specializing, Table: transactions_1k, Description: Gas station customer purchase transactions in Gas station sales tracking"
+  },
+  {
+    "database": "debit_card_specializing",
+    "table": "yearmonth",
+    "full_text": "Database: debit_card_specializing, Table: yearmonth, Description: Customer consumption records by date in Gas station sales tracking"
+  },
+  {
+    "database": "financial",
+    "table": "account",
+    "full_text": "Database: financial, Table: account, Description: Bank account details and branch information in Banking and financial services"
+  },
+  {
+    "database": "financial",
+    "table": "card",
+    "full_text": "Database: financial, Table: card, Description: Stores issued credit card information in Banking and financial services"
+  },
+  {
+    "database": "financial",
+    "table": "client",
+    "full_text": "Database: financial, Table: client, Description: Client information and associated branch location in Banking and financial services"
+  },
+  {
+    "database": "financial",
+    "table": "disp",
+    "full_text": "Database: financial, Table: disp, Description: Client account relationship types in Banking and financial services"
+  },
+  {
+    "database": "financial",
+    "table": "district",
+    "full_text": "Database: financial, Table: district, Description: Regional demographic and economic statistics data in Banking and financial services"
+  },
+  {
+    "database": "financial",
+    "table": "loan",
+    "full_text": "Database: financial, Table: loan, Description: Loan transaction records and status in Banking and financial services"
+  },
+  {
+    "database": "financial",
+    "table": "order",
+    "full_text": "Database: financial, Table: order, Description: Outgoing payment transaction records in Banking and financial services"
+  },
+  {
+    "database": "financial",
+    "table": "trans",
+    "full_text": "Database: financial, Table: trans, Description: Bank account transaction records and balances in Banking and financial services"
+  },
+  {
+    "database": "formula_1",
+    "table": "circuits",
+    "full_text": "Database: formula_1, Table: circuits, Description: Racing circuit locations and geographic information in Formula 1 racing data"
+  },
+  {
+    "database": "formula_1",
+    "table": "constructors",
+    "full_text": "Database: formula_1, Table: constructors, Description: Formula 1 racing team information in Formula 1 racing data"
+  },
+  {
+    "database": "formula_1",
+    "table": "drivers",
+    "full_text": "Database: formula_1, Table: drivers, Description: Professional racing driver information and profiles in Formula 1 racing data"
+  },
+  {
+    "database": "formula_1",
+    "table": "seasons",
+    "full_text": "Database: formula_1, Table: seasons, Description: Mapping seasons to race identifiers and URLs in Formula 1 racing data"
+  },
+  {
+    "database": "formula_1",
+    "table": "races",
+    "full_text": "Database: formula_1, Table: races, Description: Scheduled motorsport racing events data in Formula 1 racing data"
+  },
+  {
+    "database": "formula_1",
+    "table": "constructorResults",
+    "full_text": "Database: formula_1, Table: constructorResults, Description: Constructor points and status per race in Formula 1 racing data"
+  },
+  {
+    "database": "formula_1",
+    "table": "constructorStandings",
+    "full_text": "Database: formula_1, Table: constructorStandings, Description: F1 constructor championship standings per race in Formula 1 racing data"
+  },
+  {
+    "database": "formula_1",
+    "table": "driverStandings",
+    "full_text": "Database: formula_1, Table: driverStandings, Description: Driver championship rankings and statistics in Formula 1 racing data"
+  },
+  {
+    "database": "formula_1",
+    "table": "lapTimes",
+    "full_text": "Database: formula_1, Table: lapTimes, Description: Individual lap performances in racing events in Formula 1 racing data"
+  },
+  {
+    "database": "formula_1",
+    "table": "pitStops",
+    "full_text": "Database: formula_1, Table: pitStops, Description: Timing data for racing pit stops in Formula 1 racing data"
+  },
+  {
+    "database": "formula_1",
+    "table": "qualifying",
+    "full_text": "Database: formula_1, Table: qualifying, Description: Race qualification session results in Formula 1 racing data"
+  },
+  {
+    "database": "formula_1",
+    "table": "status",
+    "full_text": "Database: formula_1, Table: status, Description: Stores predefined status options and identifiers in Formula 1 racing data"
+  },
+  {
+    "database": "formula_1",
+    "table": "results",
+    "full_text": "Database: formula_1, Table: results, Description: Race results and driver performance statistics in Formula 1 racing data"
+  },
+  {
+    "database": "california_schools",
+    "table": "frpm",
+    "full_text": "Database: california_schools, Table: frpm, Description: School meal program eligibility and participation data in Education performance and demographics"
+  },
+  {
+    "database": "california_schools",
+    "table": "satscores",
+    "full_text": "Database: california_schools, Table: satscores, Description: School-level SAT test scores and performance metrics in Education performance and demographics"
+  },
+  {
+    "database": "california_schools",
+    "table": "schools",
+    "full_text": "Database: california_schools, Table: schools, Description: Comprehensive registry of educational institution profiles in Education performance and demographics"
+  },
+  {
+    "database": "card_games",
+    "table": "cards",
+    "full_text": "Database: card_games, Table: cards, Description: Magic: The Gathering card database in Collectible card game management"
+  },
+  {
+    "database": "card_games",
+    "table": "foreign_data",
+    "full_text": "Database: card_games, Table: foreign_data, Description: Multilingual game card translations data in Collectible card game management"
+  },
+  {
+    "database": "card_games",
+    "table": "legalities",
+    "full_text": "Database: card_games, Table: legalities, Description: Legal status across different formats in Collectible card game management"
+  },
+  {
+    "database": "card_games",
+    "table": "sets",
+    "full_text": "Database: card_games, Table: sets, Description: Magic: The Gathering card set information in Collectible card game management"
+  },
+  {
+    "database": "card_games",
+    "table": "set_translations",
+    "full_text": "Database: card_games, Table: set_translations, Description: Translations for content sets by language in Collectible card game management"
+  },
+  {
+    "database": "card_games",
+    "table": "rulings",
+    "full_text": "Database: card_games, Table: rulings, Description: Official decisions or legal judgments in Collectible card game management"
+  },
+  {
+    "database": "european_football_2",
+    "table": "Player_Attributes",
+    "full_text": "Database: european_football_2, Table: Player_Attributes, Description: Historical football player skill ratings and attributes in Sports league management system"
+  },
+  {
+    "database": "european_football_2",
+    "table": "Player",
+    "full_text": "Database: european_football_2, Table: Player, Description: Football player profiles and physical attributes in Sports league management system"
+  },
+  {
+    "database": "european_football_2",
+    "table": "League",
+    "full_text": "Database: european_football_2, Table: League, Description: Sports leagues organized by country in Sports league management system"
+  },
+  {
+    "database": "european_football_2",
+    "table": "Country",
+    "full_text": "Database: european_football_2, Table: Country, Description: Stores country identifiers and names in Sports league management system"
+  },
+  {
+    "database": "european_football_2",
+    "table": "Team",
+    "full_text": "Database: european_football_2, Table: Team, Description: Soccer/football team basic information and identifiers in Sports league management system"
+  },
+  {
+    "database": "european_football_2",
+    "table": "Team_Attributes",
+    "full_text": "Database: european_football_2, Table: Team_Attributes, Description: Team tactical and defensive playing style attributes in Sports league management system"
+  },
+  {
+    "database": "european_football_2",
+    "table": "Match",
+    "full_text": "Database: european_football_2, Table: Match, Description: Soccer match results with player positions and betting odds in Sports league management system"
+  },
+  {
+    "database": "thrombosis_prediction",
+    "table": "Examination",
+    "full_text": "Database: thrombosis_prediction, Table: Examination, Description: Antiphospholipid syndrome diagnostic test results in Medical diagnostics and care"
+  },
+  {
+    "database": "thrombosis_prediction",
+    "table": "Patient",
+    "full_text": "Database: thrombosis_prediction, Table: Patient, Description: Patient medical records and demographics in Medical diagnostics and care"
+  },
+  {
+    "database": "thrombosis_prediction",
+    "table": "Laboratory",
+    "full_text": "Database: thrombosis_prediction, Table: Laboratory, Description: Comprehensive blood and laboratory test results in Medical diagnostics and care"
+  },
+  {
+    "database": "toxicology",
+    "table": "atom",
+    "full_text": "Database: toxicology, Table: atom, Description: Atoms composing molecules by element in Chemical structure management"
+  },
+  {
+    "database": "toxicology",
+    "table": "bond",
+    "full_text": "Database: toxicology, Table: bond, Description: Chemical bonds within molecular structures in Chemical structure management"
+  },
+  {
+    "database": "toxicology",
+    "table": "connected",
+    "full_text": "Database: toxicology, Table: connected, Description: Chemical bonds between atom pairs in Chemical structure management"
+  },
+  {
+    "database": "toxicology",
+    "table": "molecule",
+    "full_text": "Database: toxicology, Table: molecule, Description: Stores chemical molecule identifiers and names in Chemical structure management"
+  },
+  {
+    "database": "student_club",
+    "table": "event",
+    "full_text": "Database: student_club, Table: event, Description: Records details and status of events in Organization management system"
+  },
+  {
+    "database": "student_club",
+    "table": "major",
+    "full_text": "Database: student_club, Table: major, Description: Academic majors and their organizational structure in Organization management system"
+  },
+  {
+    "database": "student_club",
+    "table": "zip_code",
+    "full_text": "Database: student_club, Table: zip_code, Description: Postal code to location mapping data in Organization management system"
+  },
+  {
+    "database": "student_club",
+    "table": "attendance",
+    "full_text": "Database: student_club, Table: attendance, Description: Records member participation in events in Organization management system"
+  },
+  {
+    "database": "student_club",
+    "table": "budget",
+    "full_text": "Database: student_club, Table: budget, Description: Event budget tracking and expenditure monitoring in Organization management system"
+  },
+  {
+    "database": "student_club",
+    "table": "expense",
+    "full_text": "Database: student_club, Table: expense, Description: Tracks organizational expenses and approvals in Organization management system"
+  },
+  {
+    "database": "student_club",
+    "table": "income",
+    "full_text": "Database: student_club, Table: income, Description: Member income records and sources in Organization management system"
+  },
+  {
+    "database": "student_club",
+    "table": "member",
+    "full_text": "Database: student_club, Table: member, Description: Organization membership directory and contact information in Organization management system"
+  },
+  {
+    "database": "superhero",
+    "table": "alignment",
+    "full_text": "Database: superhero, Table: alignment, Description: Character or text alignment types in Superhero character database"
+  },
+  {
+    "database": "superhero",
+    "table": "attribute",
+    "full_text": "Database: superhero, Table: attribute, Description: Stores unique characteristics or properties in Superhero character database"
+  },
+  {
+    "database": "superhero",
+    "table": "colour",
+    "full_text": "Database: superhero, Table: colour, Description: Stores available color options list in Superhero character database"
+  },
+  {
+    "database": "superhero",
+    "table": "gender",
+    "full_text": "Database: superhero, Table: gender, Description: - Stores gender options and identifiers in Superhero character database"
+  },
+  {
+    "database": "superhero",
+    "table": "publisher",
+    "full_text": "Database: superhero, Table: publisher, Description: Stores information about publishing companies in Superhero character database"
+  },
+  {
+    "database": "superhero",
+    "table": "race",
+    "full_text": "Database: superhero, Table: race, Description: Stores race categories and identifiers in Superhero character database"
+  },
+  {
+    "database": "superhero",
+    "table": "superhero",
+    "full_text": "Database: superhero, Table: superhero, Description: Superhero character profiles and attributes in Superhero character database"
+  },
+  {
+    "database": "superhero",
+    "table": "hero_attribute",
+    "full_text": "Database: superhero, Table: hero_attribute, Description: Hero attributes and their values in Superhero character database"
+  },
+  {
+    "database": "superhero",
+    "table": "superpower",
+    "full_text": "Database: superhero, Table: superpower, Description: Catalog of distinct superpower types in Superhero character database"
+  },
+  {
+    "database": "superhero",
+    "table": "hero_power",
+    "full_text": "Database: superhero, Table: hero_power, Description: Links heroes to their powers in Superhero character database"
+  },
+  {
+    "database": "codebase_community",
+    "table": "badges",
+    "full_text": "Database: codebase_community, Table: badges, Description: User achievement awards and badges in Online community platform"
+  },
+  {
+    "database": "codebase_community",
+    "table": "comments",
+    "full_text": "Database: codebase_community, Table: comments, Description: User comments on posts with metadata in Online community platform"
+  },
+  {
+    "database": "codebase_community",
+    "table": "postHistory",
+    "full_text": "Database: codebase_community, Table: postHistory, Description: Tracks revision history of post edits in Online community platform"
+  },
+  {
+    "database": "codebase_community",
+    "table": "postLinks",
+    "full_text": "Database: codebase_community, Table: postLinks, Description: Links between related posts in Online community platform"
+  },
+  {
+    "database": "codebase_community",
+    "table": "posts",
+    "full_text": "Database: codebase_community, Table: posts, Description: Question and answer platform posts in Online community platform"
+  },
+  {
+    "database": "codebase_community",
+    "table": "tags",
+    "full_text": "Database: codebase_community, Table: tags, Description: Tag metadata and usage statistics in Online community platform"
+  },
+  {
+    "database": "codebase_community",
+    "table": "users",
+    "full_text": "Database: codebase_community, Table: users, Description: User profiles and activity statistics in Online community platform"
+  },
+  {
+    "database": "codebase_community",
+    "table": "votes",
+    "full_text": "Database: codebase_community, Table: votes, Description: User votes on posts with types in Online community platform"
+  }
+]

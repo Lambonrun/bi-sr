@@ -1,0 +1,12 @@
+[
+  {
+    "database": "european_football_1",
+    "table": "divisions",
+    "full_text": "Database: european_football_1, Table: divisions, Description: Geographical divisions within countries in Sports competition management"
+  },
+  {
+    "database": "european_football_1",
+    "table": "matchs",
+    "full_text": "Database: european_football_1, Table: matchs, Description: Football match results and statistics in Sports competition management"
+  }
+]

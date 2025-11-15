@@ -1,0 +1,302 @@
+[
+  {
+    "database": "debit_card_specializing",
+    "table": "customers"
+  },
+  {
+    "database": "debit_card_specializing",
+    "table": "gasstations"
+  },
+  {
+    "database": "debit_card_specializing",
+    "table": "products"
+  },
+  {
+    "database": "debit_card_specializing",
+    "table": "transactions_1k"
+  },
+  {
+    "database": "debit_card_specializing",
+    "table": "yearmonth"
+  },
+  {
+    "database": "financial",
+    "table": "account"
+  },
+  {
+    "database": "financial",
+    "table": "card"
+  },
+  {
+    "database": "financial",
+    "table": "client"
+  },
+  {
+    "database": "financial",
+    "table": "disp"
+  },
+  {
+    "database": "financial",
+    "table": "district"
+  },
+  {
+    "database": "financial",
+    "table": "loan"
+  },
+  {
+    "database": "financial",
+    "table": "order"
+  },
+  {
+    "database": "financial",
+    "table": "trans"
+  },
+  {
+    "database": "formula_1",
+    "table": "circuits"
+  },
+  {
+    "database": "formula_1",
+    "table": "constructors"
+  },
+  {
+    "database": "formula_1",
+    "table": "drivers"
+  },
+  {
+    "database": "formula_1",
+    "table": "seasons"
+  },
+  {
+    "database": "formula_1",
+    "table": "races"
+  },
+  {
+    "database": "formula_1",
+    "table": "constructorResults"
+  },
+  {
+    "database": "formula_1",
+    "table": "constructorStandings"
+  },
+  {
+    "database": "formula_1",
+    "table": "driverStandings"
+  },
+  {
+    "database": "formula_1",
+    "table": "lapTimes"
+  },
+  {
+    "database": "formula_1",
+    "table": "pitStops"
+  },
+  {
+    "database": "formula_1",
+    "table": "qualifying"
+  },
+  {
+    "database": "formula_1",
+    "table": "status"
+  },
+  {
+    "database": "formula_1",
+    "table": "results"
+  },
+  {
+    "database": "california_schools",
+    "table": "frpm"
+  },
+  {
+    "database": "california_schools",
+    "table": "satscores"
+  },
+  {
+    "database": "california_schools",
+    "table": "schools"
+  },
+  {
+    "database": "card_games",
+    "table": "cards"
+  },
+  {
+    "database": "card_games",
+    "table": "foreign_data"
+  },
+  {
+    "database": "card_games",
+    "table": "legalities"
+  },
+  {
+    "database": "card_games",
+    "table": "sets"
+  },
+  {
+    "database": "card_games",
+    "table": "set_translations"
+  },
+  {
+    "database": "card_games",
+    "table": "rulings"
+  },
+  {
+    "database": "european_football_2",
+    "table": "Player_Attributes"
+  },
+  {
+    "database": "european_football_2",
+    "table": "Player"
+  },
+  {
+    "database": "european_football_2",
+    "table": "League"
+  },
+  {
+    "database": "european_football_2",
+    "table": "Country"
+  },
+  {
+    "database": "european_football_2",
+    "table": "Team"
+  },
+  {
+    "database": "european_football_2",
+    "table": "Team_Attributes"
+  },
+  {
+    "database": "european_football_2",
+    "table": "Match"
+  },
+  {
+    "database": "thrombosis_prediction",
+    "table": "Examination"
+  },
+  {
+    "database": "thrombosis_prediction",
+    "table": "Patient"
+  },
+  {
+    "database": "thrombosis_prediction",
+    "table": "Laboratory"
+  },
+  {
+    "database": "toxicology",
+    "table": "atom"
+  },
+  {
+    "database": "toxicology",
+    "table": "bond"
+  },
+  {
+    "database": "toxicology",
+    "table": "connected"
+  },
+  {
+    "database": "toxicology",
+    "table": "molecule"
+  },
+  {
+    "database": "student_club",
+    "table": "event"
+  },
+  {
+    "database": "student_club",
+    "table": "major"
+  },
+  {
+    "database": "student_club",
+    "table": "zip_code"
+  },
+  {
+    "database": "student_club",
+    "table": "attendance"
+  },
+  {
+    "database": "student_club",
+    "table": "budget"
+  },
+  {
+    "database": "student_club",
+    "table": "expense"
+  },
+  {
+    "database": "student_club",
+    "table": "income"
+  },
+  {
+    "database": "student_club",
+    "table": "member"
+  },
+  {
+    "database": "superhero",
+    "table": "alignment"
+  },
+  {
+    "database": "superhero",
+    "table": "attribute"
+  },
+  {
+    "database": "superhero",
+    "table": "colour"
+  },
+  {
+    "database": "superhero",
+    "table": "gender"
+  },
+  {
+    "database": "superhero",
+    "table": "publisher"
+  },
+  {
+    "database": "superhero",
+    "table": "race"
+  },
+  {
+    "database": "superhero",
+    "table": "superhero"
+  },
+  {
+    "database": "superhero",
+    "table": "hero_attribute"
+  },
+  {
+    "database": "superhero",
+    "table": "superpower"
+  },
+  {
+    "database": "superhero",
+    "table": "hero_power"
+  },
+  {
+    "database": "codebase_community",
+    "table": "badges"
+  },
+  {
+    "database": "codebase_community",
+    "table": "comments"
+  },
+  {
+    "database": "codebase_community",
+    "table": "postHistory"
+  },
+  {
+    "database": "codebase_community",
+    "table": "postLinks"
+  },
+  {
+    "database": "codebase_community",
+    "table": "posts"
+  },
+  {
+    "database": "codebase_community",
+    "table": "tags"
+  },
+  {
+    "database": "codebase_community",
+    "table": "users"
+  },
+  {
+    "database": "codebase_community",
+    "table": "votes"
+  }
+]
