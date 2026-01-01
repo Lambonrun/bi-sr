@@ -30,7 +30,8 @@ python schema_construction_spyder.py # For Spider
 Generation & evaluation:
 
 
-```python SQL_generation.py # For BIRD
+```
+python SQL_generation.py # For BIRD
 python SQL_generation_spyder.py # For Spider
 sh BIRD_Data\llm\run\run_evaluation_ves.sh
 ```
