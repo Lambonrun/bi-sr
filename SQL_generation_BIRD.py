@@ -13,8 +13,8 @@ BASE_DB_PATH = "/data/spider/spider_data/database"
 
 client = openai.OpenAI(api_key=API_KEY, base_url=BASE_URL)
 
-# Concurrency control
-CONCURRENT_REQUESTS = 50  # You can modify this value to control concurrency
+
+CONCURRENT_REQUESTS = 50  
 
 def get_completion(prompt: str, system_prompt: str = "You are a helpful assistant."):
     message = client.chat.completions.create(
@@ -29,7 +29,7 @@ def get_completion(prompt: str, system_prompt: str = "You are a helpful assistan
     return message.choices[0].message.content
 
 async def get_completion_async(session, prompt: str, system_prompt: str = "You are a helpful assistant."):
-    """Asynchronous version of API call"""
+   
     headers = {
         "Authorization": f"Bearer {API_KEY}",
         "Content-Type": "application/json"
@@ -55,9 +55,7 @@ async def get_completion_async(session, prompt: str, system_prompt: str = "You a
             return None
 
 def load_final_queries(file_path: str):
-    """
-    Load final query data, compatible with different formats
-    """
+    
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
@@ -71,7 +69,7 @@ def load_final_queries(file_path: str):
             print(f"Loaded {len(final_query)} query items from dictionary format")
             return final_query
         else:
-            print(f"Error: Unsupported file format. Expected list or dictionary with 'final_query' key.")
+            print(f"Error: Unsupported file format. Expected a list or a dictionary containing the 'final_query' key.")
             return []
             
     except FileNotFoundError:
@@ -82,7 +80,7 @@ def load_final_queries(file_path: str):
         return []
 
 def generate_sql(question: str, schema: str, database: str):
-    """Original synchronous SQL generation function (backup)"""
+    
     sys_prompt = """
     You are an expert in database domain.
     """
@@ -153,7 +151,7 @@ async def generate_sql_async(session, question: str, schema: str, database: str,
     Target database: concert_singer
     
     Answer:
-    -SQL: SELECT count(*) FROM singer
+    -SQL: SELECT count(*) FROM singer;
     -Database: concert_singer
     </Example>
 
@@ -177,7 +175,7 @@ async def generate_sql_async(session, question: str, schema: str, database: str,
     answer = await get_completion_async(session, prompt, system_prompt=sys_prompt)
     
     if answer is None:
-        return f"NULL\t{database}"  # If API call fails, return default value
+        return f"NULL\t----- bird -----\t{database}"  # If API call fails, return default value
     
     # Use regex to extract SQL and database
     match = re.search(r"<Answer>\s*-SQL: (.*?)\s*-Database: (.*?)\s*</Answer>", answer, re.DOTALL)
@@ -189,12 +187,12 @@ async def generate_sql_async(session, question: str, schema: str, database: str,
         ans_sql = "NULL"
         ans_database = database  # Use the passed database as default value
 
-    final_answer = f"{ans_sql}"
+    final_answer = f"{ans_sql}\t----- bird -----\t{ans_database}"
     return final_answer
 
 async def process_batch_sql(session, batch_data, batch_index):
     """Process a batch of SQL generation tasks"""
-    print(f"Starting to process batch {batch_index + 1}, containing {len(batch_data)} questions")
+    print(f"Start processing batch {batch_index + 1}, containing {len(batch_data)} questions")
     
     # Create all tasks for this batch
     tasks = []
@@ -218,6 +216,9 @@ async def generate_sql_batch_async(final_queries):
     for query in final_queries:
         question = query['question']
         schema = query['original_schema']
+        for table in schema:
+            if 'error' in table:
+                schema.remove(table)
         database = query['answer']['db_id']
         chosen_schema = query['chosen_schema']
         batch_data.append((question, schema, database, chosen_schema))
@@ -236,7 +237,7 @@ async def generate_sql_batch_async(final_queries):
     async with aiohttp.ClientSession(connector=connector, timeout=timeout) as session:
         start_time = time.time()
         
-        # Process batches sequentially to maintain order
+        # Process batch by batch to maintain order
         for batch_index, batch in enumerate(batches):
             batch_results = await process_batch_sql(session, batch, batch_index)
             
@@ -254,7 +255,7 @@ async def generate_sql_batch_async(final_queries):
             print(f"Progress: {processed_count}/{total_count} "
                   f"({processed_count/total_count*100:.1f}%) "
                   f"Elapsed: {elapsed_time:.1f}s "
-                  f"Remaining: {remaining_time:.1f}s")
+                  f"ETA: {remaining_time:.1f}s")
             
             # Take a short break between batches to avoid too frequent requests
             if batch_index < len(batches) - 1:  # Not the last batch
@@ -267,7 +268,7 @@ async def generate_sql_batch_async(final_queries):
 
 if __name__ == '__main__':
     print("Generating SQL using asynchronous concurrent version...")
-    final_queries = load_final_queries("/data/spider/spider_data/cache/dev_final_query_column_filtering_baseline_Qwen3.json")
+    final_queries = load_final_queries('\BIRD_Data\data_cache\dev\dev_final_query_column_filtering_BIRD.json')
     
     # Use asynchronous version
     final_answers = asyncio.run(generate_sql_batch_async(final_queries))
@@ -275,8 +276,8 @@ if __name__ == '__main__':
     print(f"Generation completed:")
     print(f"Number of SQL generated: {len(final_answers)}")
     
-    # Save results as sql file
-    with open("/data/spider/spider_data/cache/dev_final_query_column_filtering_sql_baseline_Qwen3.sql", "w", encoding="utf-8") as f:
+    # Save results as json file
+    with open('\BIRD_Data\data_cache\dev\dev_final_query_column_filtering_sql_BIRD.json', "w", encoding="utf-8") as f:
         for final_answer in final_answers:
             f.write(final_answer + "\n")
     print("Data saving completed!")

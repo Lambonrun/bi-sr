@@ -1,2 +1,2 @@
-# 忽略BIRD_Data/data目录下的文件
+# Ignore files under BIRD_Data/data directory
 BIRD_Data/data/*

@@ -10,23 +10,24 @@ import time
 import openai
 from typing import List, Dict, Tuple, Set
 
-API_KEY = "sk-9fe9b714a9ad4b6ab83bf7a13ead42ec"
+API_KEY = "API"
 MODEL_NAME = "deepseek-chat"
 BASE_URL = "https://api.deepseek.com/v1"
 
 client = openai.OpenAI(api_key=API_KEY, base_url=BASE_URL)
 
-# 并发数控制
-CONCURRENT_REQUESTS = 50  # 可以修改这个值来控制并发数（建议5-15之间）
-# --- 配置 ---
-# schema.sql 文件所在的数据库根目录
-BASE_DB_PATH = "/home/yfwang/wyy/schema_routing/data/spider/spider_data/database"
-# tables.json 文件路径
-TABLES_JSON_PATH = "/home/yfwang/wyy/schema_routing/data/spider/spider_data/tables.json"
+# Concurrency control
+CONCURRENT_REQUESTS = 20  # You can modify this value to control concurrency (recommended 5-15)
+# --- Configuration ---
+# Root directory of the database where schema.sql files are located
+# NO USE HERE
+BASE_DB_PATH = "/data/spider/spider_data/database"
+# tables.json file path
+TABLES_JSON_PATH = "\BIRD_Data\dev_20240627\dev_tables.json"
 
-BASE_INFO_PATH = "/home/yfwang/wyy/schema_routing/data/spider/spider_data/cache/dev_predicted_tables_baseline_Qwen3.json"
+BASE_INFO_PATH = "\BIRD_Data\data_cache\dev\dev_predicted_tables_finetuned.json"
 
-# --- 数据加载与缓存 (这部分没有变化) ---
+# --- Data loading and caching (this part has not changed) ---
 JSON_SCHEMA_CACHE = None
 def load_json_data(json_path: str) -> dict:
     try:
@@ -34,7 +35,7 @@ def load_json_data(json_path: str) -> dict:
             data = json.load(f)
         return {db['db_id']: db for db in data}
     except Exception as e:
-        print(f"警告: 加载或处理JSON文件 '{json_path}' 时出错: {e}")
+        print(f"Warning: Error loading or processing JSON file '{json_path}': {e}")
         return {}
 
 def get_json_schema_data():
@@ -43,10 +44,10 @@ def get_json_schema_data():
         JSON_SCHEMA_CACHE = load_json_data(TABLES_JSON_PATH)
     return JSON_SCHEMA_CACHE
 
-# --- 辅助函数 ---
+# --- Helper functions ---
 
 def _parse_input_string(input_str: str) -> tuple[str | None, str | None]:
-    """解析输入字符串。"""
+    """Parse input string."""
     try:
         db_match = re.search(r'database:\s*([^,]+)', input_str)
         table_match = re.search(r'table:\s*([^,]+)', input_str)
@@ -56,26 +57,26 @@ def _parse_input_string(input_str: str) -> tuple[str | None, str | None]:
         return None, None
 
 def _extract_raw_create_table_from_sql(database_name: str, table_name: str) -> str:
-    """[策略1] 尝试从.sql文件提取CREATE TABLE语句。"""
+    """[Strategy 1] Try to extract CREATE TABLE statements from .sql files."""
     schema_file_path = os.path.join(BASE_DB_PATH, database_name, "schema.sql")
     if not os.path.exists(schema_file_path):
-        return f"错误: SQL文件未找到 -> {schema_file_path}"
+        return f"Error: SQL file not found -> {schema_file_path}"
     
     try:
         with open(schema_file_path, 'r', encoding='utf-8') as f: content = f.read()
         pattern = re.compile(f'CREATE TABLE\s+["`]?{table_name}["`]?\s*\(.*?\);', re.DOTALL | re.IGNORECASE)
         match = pattern.search(content)
         if match: return match.group(0)
-        else: return f"错误: 在 {schema_file_path} 中未找到表 '{table_name}' 的 CREATE TABLE 语句。"
+        else: return f"Error: CREATE TABLE statement for table '{table_name}' not found in {schema_file_path}."
     except Exception as e:
-        return f"读取或处理SQL文件 {schema_file_path} 时出错: {e}"
+        return f"Error reading or processing SQL file {schema_file_path}: {e}"
 
 def _reconstruct_create_table_from_json(db_info: dict, table_name: str) -> str:
-    """[策略2] 仅根据JSON数据重建CREATE TABLE语句。"""
+    """[Strategy 2] Reconstruct CREATE TABLE statement based only on JSON data."""
     try:
         table_index = db_info['table_names_original'].index(table_name)
     except (ValueError, KeyError):
-        return f"错误: 在数据库 '{db_info.get('db_id')}' 的JSON信息中未找到表 '{table_name}'。"
+        return f"Error: Table '{table_name}' not found in JSON information for database '{db_info.get('db_id')}'."
 
     original_table_name = db_info['table_names_original'][table_index]
     
@@ -110,10 +111,10 @@ def _reconstruct_create_table_from_json(db_info: dict, table_name: str) -> str:
             ref_table_name = db_info['table_names_original'][ref_table_index]
             column_definitions.append(f'FOREIGN KEY ("{source_col_name}") REFERENCES "{ref_table_name}"("{ref_col_name}")')
     
-    # 1. 先将 join 操作的结果存入一个变量
+    # 1. First store the result of the join operation in a variable
     formatted_columns = ",\n    ".join(column_definitions)
     
-    # 2. 然后在 f-string 中使用这个不含反斜杠的变量
+    # 2. Then use this variable without backslashes in the f-string
     return (f'CREATE TABLE "{original_table_name}" (\n'
             f'    {formatted_columns}\n'
             f');')
@@ -121,16 +122,16 @@ def _reconstruct_create_table_from_json(db_info: dict, table_name: str) -> str:
 
 def get_formatted_schema_robust(item_string: str) -> str:
     """
-    健壮的模式提取函数，优先使用SQL文件，失败则回退到JSON重建。
+    Robust schema extraction function that prioritizes SQL files and falls back to JSON reconstruction on failure.
     """
     db_id, table_name = _parse_input_string(item_string)
     if not db_id or not table_name:
-        return f"错误: 无法解析输入 '{item_string}'。"
+        return f"Error: Unable to parse input '{item_string}'."
 
-    # --- 策略1：尝试从SQL文件提取和增强 ---
+    # --- Strategy 1: Try to extract and enhance from SQL file ---
     raw_create_table = _extract_raw_create_table_from_sql(db_id, table_name)
     
-    if not raw_create_table.startswith("错误:"):
+    if not raw_create_table.startswith("Error:"):
         json_data = get_json_schema_data()
         name_mapping = {}
         if json_data and db_id in json_data:
@@ -161,22 +162,41 @@ def get_formatted_schema_robust(item_string: str) -> str:
                 f"Table information:\n"
                 f"{enhanced_create_table}")
 
-    # --- 策略2：如果策略1失败，回退到从JSON重建 ---
+    # --- Strategy 2: If Strategy 1 fails, fall back to reconstruction from JSON ---
     else:
-        # print(f"信息: 未在SQL文件中找到 '{table_name}'，尝试从JSON重建...") # 用于调试的提示信息
+        # print(f"Info: '{table_name}' not found in SQL file, trying to reconstruct from JSON...") # Debug prompt
         json_data = get_json_schema_data()
         if not json_data or db_id not in json_data:
-            return f"错误: 在JSON数据中也未找到数据库 '{db_id}'。两种策略均失败。"
+            return f"Error: Database '{db_id}' not found in JSON data either. Both strategies failed."
         
         db_info = json_data[db_id]
         reconstructed_sql = _reconstruct_create_table_from_json(db_info, table_name)
         
-        if reconstructed_sql.startswith("错误:"):
-            return reconstructed_sql # 如果JSON重建也失败，返回其错误信息
+        if reconstructed_sql.startswith("Error:"):
+            return reconstructed_sql # If JSON reconstruction also fails, return its error message
             
         return (f"Database: {db_id} Table: {table_name}\n"
                 f"Table information:\n"
                 f"{reconstructed_sql}")
+
+def get_formatted_schema_json(item_string: str) -> str:
+    db_id, table_name = _parse_input_string(item_string)
+    if not db_id or not table_name:
+        return f"Error: Unable to parse input '{item_string}'."
+    
+    json_data = get_json_schema_data()
+    if not json_data or db_id not in json_data:
+        return f"Error: Database '{db_id}' not found in JSON data either. Both strategies failed."
+    
+    db_info = json_data[db_id]
+    reconstructed_sql = _reconstruct_create_table_from_json(db_info, table_name)
+    
+    if reconstructed_sql.startswith("Error:"):
+        return reconstructed_sql # If JSON reconstruction also fails, return its error message
+        
+    return (f"Database: {db_id} Table: {table_name}\n"
+            f"Table information:\n"
+            f"{reconstructed_sql}")
 
 
 def load_schema_construction_data(file_path: str):
@@ -213,34 +233,34 @@ def load_schema_construction_data(file_path: str):
             print("tables length: ", len(tables))
 
     except FileNotFoundError:
-        print(f"错误: 文件 '{file_path}' 未找到。")
+        print(f"Error: File '{file_path}' not found.")
     except json.JSONDecodeError:
-        print(f"错误: 文件 '{file_path}' 不是有效的JSON格式。")
+        print(f"Error: File '{file_path}' is not valid JSON format.")
         
     return questions, answers, tables
 
 def _parse_highlight_instructions(instructions_string: str) -> Dict[Tuple[str, str], Set[str]]:
     """
-    (内部辅助函数) 解析包含多个高亮指令的单一字符串。
-    返回一个字典，键为(数据库, 表)，值为需要高亮的列名集合。
+    (Internal helper function) Parse a single string containing multiple highlight instructions.
+    Returns a dictionary with keys as (database, table) tuples and values as sets of column names to highlight.
     """
     highlights = {}
     pattern = re.compile(r"Database:\s*(.*?)\s*Table:\s*(.*?)\s*Column:\s*(.*)", re.IGNORECASE)
     
-    # 将传入的单个字符串按换行符分割成多行
+    # Split the incoming single string into multiple lines by newline
     lines = instructions_string.split('\n')
     
     for instruction in lines:
-        # 去除每行可能存在的前后空格（特别是- 前面的空格）
+        # Remove possible leading/trailing spaces from each line (especially spaces before -)
         clean_instruction = instruction.strip()
         if not clean_instruction:
-            continue # 跳过空行
+            continue # Skip empty lines
 
         match = pattern.search(clean_instruction)
         if match:
             db_name = match.group(1).strip()
             table_name = match.group(2).strip()
-            # 将"col1, col2"这样的字符串分割成集合{'col1', 'col2'}
+            # Split strings like "col1, col2" into sets {'col1', 'col2'}
             columns_to_highlight = {col.strip() for col in match.group(3).split(',')}
             
             highlights[(db_name, table_name)] = columns_to_highlight
@@ -252,16 +272,16 @@ def add_important_markers(
     instructions_string: str 
 ) -> List[str]:
     """
-    根据指令，在CREATE TABLE语句的列注释中添加"IMPORTANT"标记。
+    Add "IMPORTANT" markers to column comments in CREATE TABLE statements according to instructions.
 
-    :param statement_list: 由之前函数生成的、包含CREATE TABLE语句的字符串列表。
-    :param instructions_string: 包含所有高亮指令的单一字符串。
-    :return: 一个包含修改后语句的新列表。
+    :param statement_list: List of strings containing CREATE TABLE statements generated by previous functions.
+    :param instructions_string: Single string containing all highlight instructions.
+    :return: New list containing modified statements.
     """
-    # 1. 解析高亮指令字符串
+    # 1. Parse highlight instruction string
     highlights_map = _parse_highlight_instructions(instructions_string)
     if not highlights_map:
-        print("警告: 未解析到任何有效的高亮指令。")
+        print("Warning: No valid highlight instructions parsed.")
         return statement_list
 
     modified_statements = []
@@ -269,7 +289,7 @@ def add_important_markers(
     header_pattern = re.compile(r"Database:\s*(.*?)\s*Table:\s*(.*)", re.IGNORECASE)
     col_pattern = re.compile(r'^\s*["`]?(\w+)["`]?')
 
-    # 2. 遍历每一个待处理的语句
+    # 2. Iterate through each statement to be processed
     for statement in statement_list:
         header_line = statement.split('\n', 1)[0]
         header_match = header_pattern.search(header_line)
@@ -286,7 +306,7 @@ def add_important_markers(
             modified_statements.append(statement)
             continue
 
-        # 4. 如果需要，则逐行进行修改
+        # 4. If needed, modify line by line
         original_lines = statement.split('\n')
         new_lines = []
         for line in original_lines:
@@ -306,16 +326,16 @@ async def add_important_markers_async(
     instructions_string: str 
 ) -> List[str]:
     """
-    异步版本：根据指令，在CREATE TABLE语句的列注释中添加"IMPORTANT"标记。
+    Asynchronous version: Add "IMPORTANT" markers to column comments in CREATE TABLE statements according to instructions.
     
-    :param statement_list: 由之前函数生成的、包含CREATE TABLE语句的字符串列表。
-    :param instructions_string: 包含所有高亮指令的单一字符串。
-    :return: 一个包含修改后语句的新列表。
+    :param statement_list: List of strings containing CREATE TABLE statements generated by previous functions.
+    :param instructions_string: Single string containing all highlight instructions.
+    :return: New list containing modified statements.
     """
-    # 1. 解析高亮指令字符串
+    # 1. Parse highlight instruction string
     highlights_map = _parse_highlight_instructions(instructions_string)
     if not highlights_map:
-        print("警告: 未解析到任何有效的高亮指令。")
+        print("Warning: No valid highlight instructions parsed.")
         return statement_list
 
     modified_statements = []
@@ -323,7 +343,7 @@ async def add_important_markers_async(
     header_pattern = re.compile(r"Database:\s*(.*?)\s*Table:\s*(.*)", re.IGNORECASE)
     col_pattern = re.compile(r'^\s*["`]?(\w+)["`]?')
 
-    # 2. 遍历每一个待处理的语句
+    # 2. Iterate through each statement to be processed
     for statement in statement_list:
         header_line = statement.split('\n', 1)[0]
         header_match = header_pattern.search(header_line)
@@ -340,7 +360,7 @@ async def add_important_markers_async(
             modified_statements.append(statement)
             continue
 
-        # 4. 如果需要，则逐行进行修改
+        # 4. If needed, modify line by line
         original_lines = statement.split('\n')
         new_lines = []
         for line in original_lines:
@@ -353,7 +373,7 @@ async def add_important_markers_async(
         
         modified_statements.append("\n".join(new_lines))
         
-        # 定期让出控制权，避免阻塞事件循环
+        # Yield control periodically to avoid blocking the event loop
         if len(modified_statements) % 10 == 0:
             await asyncio.sleep(0)
         
@@ -372,7 +392,7 @@ def _get_completion(prompt: str, system_prompt: str = "You are a helpful assista
     return message.choices[0].message.content
 
 async def get_completion_async(session, prompt: str, system_prompt: str = "You are a helpful assistant."):
-    """异步版本的API调用"""
+    """Asynchronous version of API call"""
     headers = {
         "Authorization": f"Bearer {API_KEY}",
         "Content-Type": "application/json"
@@ -394,11 +414,11 @@ async def get_completion_async(session, prompt: str, system_prompt: str = "You a
             return result['choices'][0]['message']['content']
         else:
             error_text = await response.text()
-            print(f"API请求失败: {response.status}, {error_text}")
+            print(f"API request failed: {response.status}, {error_text}")
             return None
 
 async def column_filtering_async(session, table: str, question: str):
-    """异步版本的列过滤"""
+    """Asynchronous version of column filtering"""
     sys_prompt = """
     You are a helpful assistant in database domain.
     """
@@ -428,37 +448,37 @@ async def column_filtering_async(session, table: str, question: str):
     answer = await get_completion_async(session, prompt, system_prompt=sys_prompt)
     
     if answer is None:
-        return table  # 如果API调用失败，返回原始table
+        return table  # If API call fails, return original table
     
     filtered_answer = answer.split("<Answer>")[1].split("</Answer>")[0].strip() if "<Answer>" in answer else answer
     return filtered_answer
 
 
 async def process_batch_schema(session, batch_data, batch_index):
-    """处理一个批次的数据"""
-    print(f"开始处理批次 {batch_index + 1}，包含 {len(batch_data)} 个问题")
+    """Process a batch of data"""
+    print(f"Starting to process batch {batch_index + 1}, containing {len(batch_data)} questions")
     
-    # 为这个批次创建所有任务
+    # Create all tasks for this batch
     tasks = []
     for item in batch_data:
         question, answer, table = item
         task = column_filtering_async(session, table, question)
         tasks.append(task)
     
-    # 并发执行这个批次的所有任务
+    # Execute all tasks in this batch concurrently
     results = await asyncio.gather(*tasks)
     
-    # 处理结果，保持顺序
+    # Process results, maintain order
     processed_items = []
     for i, (item, schema) in enumerate(zip(batch_data, results)):
         question, answer, table = item
         processed_items.append({"question": question, "answer": answer, "original_schema": table, "chosen_schema": schema})
     
-    print(f"完成批次 {batch_index + 1}")
+    print(f"Completed batch {batch_index + 1}")
     return processed_items
 
 async def load_schema_construction_data_async(file_path: str):
-    """异步版本的数据加载和处理"""
+    """Asynchronous version of data loading and processing"""
     questions = []
     answers = []
     tables = []
@@ -484,47 +504,47 @@ async def load_schema_construction_data_async(file_path: str):
             tables_raw = data['predicted_tables']
             print("tables_raw length: ", len(tables_raw))
             
-            # 构建表结构数据
+            # Build table structure data
             for i, item in enumerate(tables_raw):
                 schemas = []
                 lst = item[:5]
                 for tble in lst:
-                    tble_schema = get_formatted_schema_robust(tble)
-                    if "错误" in tble_schema:
-                        print(f"Error in {i} table schema: {tble_schema}")
+                    tble_schema = get_formatted_schema_json(tble)
+                    #if "Error" in tble_schema:
+                        #print(f"Error in {i} table schema: {tble_schema}")
                     schemas.append(tble_schema)
                 tables.append(schemas)
                 if i % 200 == 0:
                     print(f"Processed {i} tables")
             print("tables length: ", len(tables))
             
-            # 准备并发处理的数据
+            # Prepare data for concurrent processing
             batch_data = []
             for question, answer, table in zip(questions, answers, tables):
                 batch_data.append((question, answer, table))
             
-            print(f"总共需要处理 {len(batch_data)} 个问题")
+            print(f"Total {len(batch_data)} questions to process")
             
-            # 将数据分成批次，每批CONCURRENT_REQUESTS个
+            # Divide data into batches, each with CONCURRENT_REQUESTS items
             batch_size = CONCURRENT_REQUESTS
             batches = [batch_data[i:i + batch_size] for i in range(0, len(batch_data), batch_size)]
-            print(f"使用 {CONCURRENT_REQUESTS} 个并发请求，共分为 {len(batches)} 个批次")
+            print(f"Using {CONCURRENT_REQUESTS} concurrent requests, divided into {len(batches)} batches")
             
-            # 创建aiohttp会话
-            connector = aiohttp.TCPConnector(limit=50)  # 限制连接数
-            timeout = aiohttp.ClientTimeout(total=600)  # 设置超时时间
+            # Create aiohttp session
+            connector = aiohttp.TCPConnector(limit=50)  # Limit connection count
+            timeout = aiohttp.ClientTimeout(total=600)  # Set timeout
             
             async with aiohttp.ClientSession(connector=connector, timeout=timeout) as session:
                 start_time = time.time()
                 
-                # 逐批处理以保持顺序
+                # Process batch by batch to maintain order
                 for batch_index, batch in enumerate(batches):
                     batch_results = await process_batch_schema(session, batch, batch_index)
                     
-                    # 将批次结果按顺序添加到最终结果中
+                    # Add batch results to final results in order
                     final_query.extend(batch_results)
                     
-                    # 显示进度
+                    # Display progress
                     processed_count = len(final_query)
                     total_count = len(batch_data)
                     elapsed_time = time.time() - start_time
@@ -532,28 +552,28 @@ async def load_schema_construction_data_async(file_path: str):
                     estimated_total_time = avg_time_per_item * total_count
                     remaining_time = estimated_total_time - elapsed_time
                     
-                    print(f"进度: {processed_count}/{total_count} "
+                    print(f"Progress: {processed_count}/{total_count} "
                           f"({processed_count/total_count*100:.1f}%) "
-                          f"已用时: {elapsed_time:.1f}s "
-                          f"预计剩余: {remaining_time:.1f}s")
+                          f"Elapsed: {elapsed_time:.1f}s "
+                          f"Estimated remaining: {remaining_time:.1f}s")
                     
-                    # 在批次之间稍作休息，避免请求过于频繁
-                    if batch_index < len(batches) - 1:  # 不是最后一个批次
+                    # Take a short break between batches to avoid too frequent requests
+                    if batch_index < len(batches) - 1:  # Not the last batch
                         await asyncio.sleep(0.5)
                 
                 total_time = time.time() - start_time
-                print(f"所有处理完成，总用时: {total_time:.1f}s")
+                print(f"All processing completed, total time: {total_time:.1f}s")
 
     except FileNotFoundError:
-        print(f"错误: 文件 '{file_path}' 未找到。")
+        print(f"Error: File '{file_path}' not found.")
     except json.JSONDecodeError:
-        print(f"错误: 文件 '{file_path}' 不是有效的JSON格式。")
+        print(f"Error: File '{file_path}' is not valid JSON format.")
         
     return questions, answers, tables, final_query
 
-# 保留原有的同步函数作为备用
+# Keep the original synchronous function as backup
 def load_schema_construction_data(file_path: str):
-    """原有的同步数据加载函数（备用）"""
+    """Original synchronous data loading function (backup)"""
     questions = []
     answers = []
     tables = []
@@ -587,14 +607,14 @@ def load_schema_construction_data(file_path: str):
             print("tables length: ", len(tables))
 
     except FileNotFoundError:
-        print(f"错误: 文件 '{file_path}' 未找到。")
+        print(f"Error: File '{file_path}' not found.")
     except json.JSONDecodeError:
-        print(f"错误: 文件 '{file_path}' 不是有效的JSON格式。")
+        print(f"Error: File '{file_path}' is not valid JSON format.")
         
     return questions, answers, tables
 
 def column_filtering_sync(table: str, question: str):
-    """原有的同步列过滤函数（备用）"""
+    """Original synchronous column filtering function (backup)"""
     sys_prompt = """
     You are a helpful assistant in database domain.
     """
@@ -626,19 +646,19 @@ def column_filtering_sync(table: str, question: str):
     return filtered_answer
 
 if __name__ == '__main__':
-    # 使用异步版本
-    print("使用异步并发版本处理数据...")
+    # Use asynchronous version
+    print("Processing data using asynchronous concurrent version...")
     questions, answers, tables, final_query = asyncio.run(load_schema_construction_data_async(BASE_INFO_PATH))
     
-    print(f"处理完成:")
+    print(f"Processing completed:")
     print(f"questions length: {len(questions)}")
     print(f"answers length: {len(answers)}")
     print(f"tables length: {len(tables)}")
     print(f"final_query length: {len(final_query)}")
     
-    # 保存结果
-    with open("/home/yfwang/wyy/schema_routing/data/spider/spider_data/cache/dev_final_query_column_filtering_baseline_Qwen3.json", "w", encoding="utf-8") as f:
+    # Save results
+    with open("\BIRD_Data\data_cache\dev\dev_final_query_column_filtering_BIRD.json", "w", encoding="utf-8") as f:
         json.dump({"questions": questions, "answers": answers, "tables": tables, "final_query": final_query}, f, ensure_ascii=False, indent=4)
     
-    print("数据保存完成！")
+    print("Data saving completed!")
     

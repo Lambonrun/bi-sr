@@ -176,12 +176,12 @@ class BartAttention(nn.Module):
             # reuse k,v, cross_attentions
             key_states = past_key_value[0]
             value_states = past_key_value[1]
-            # 进行cross attention，输入套过kv矩阵得到过的k，v，直接向右传递
+            # Perform cross attention, input k, v that have been processed through kv matrix, pass directly to the right
         elif is_cross_attention:
             # cross_attentions
             key_states = self._shape(self.k_proj(key_value_states), -1, bsz)
             value_states = self._shape(self.v_proj(key_value_states), -1, bsz)
-            # 进行cross attention，输入encoder的hidden state，套上kv矩阵得到k，v
+            # Perform cross attention, input encoder's hidden state, apply kv matrix to get k, v
             if prompt:
                 key_states = torch.cat([prompt['prev_key'], key_states], dim=2)
                 value_states = torch.cat([prompt['prev_value'], value_states], dim=2)
@@ -191,12 +191,12 @@ class BartAttention(nn.Module):
             value_states = self._shape(self.v_proj(hidden_states), -1, bsz)
             key_states = torch.cat([past_key_value[0], key_states], dim=2)
             value_states = torch.cat([past_key_value[1], value_states], dim=2)
-            # generate时候用到的函数。复用之前的k，v，然后上来hidden state，然后做self attention
+            # Function used during generation. Reuse previous k, v, then bring up hidden state, then do self attention
         else:
             # self_attention
             key_states = self._shape(self.k_proj(hidden_states), -1, bsz)
             value_states = self._shape(self.v_proj(hidden_states), -1, bsz)
-            # 纯self attention
+            # Pure self attention
             if prompt:
                 key_states = torch.cat([prompt['prev_key'], key_states], dim=2)
                 value_states = torch.cat([prompt['prev_value'], value_states], dim=2)
@@ -400,7 +400,7 @@ class BartDecoderLayer(nn.Module):
         """
         residual = hidden_states
 
-        # TODO:写decoder layer的prompt
+        # TODO: Write decoder layer prompt
         prompt = past_prompt
 
         # Self Attention
@@ -788,7 +788,7 @@ class BartEncoder(BartPretrainedModel):
 
         # We add the prompt here.
         prompt = past_prompt
-        # TODO: 第一件事是要把prompt里面的mask加到attention mask前面，其实就是最后一维
+        # TODO: The first thing is to add the mask inside the prompt to the front of the attention mask, which is actually the last dimension
         if prompt is not None and attention_mask is not None:
             bsz_input, _, tgt_seq_len, src_seq_len = attention_mask.size()
             bsz_prefix, _, prefix_seq_length, _ = prompt[0]['encoder_prompt']['prev_key'].size()
@@ -1024,7 +1024,7 @@ class BartDecoder(BartPretrainedModel):
             encoder_attention_mask = _expand_mask(encoder_attention_mask, inputs_embeds.dtype, tgt_len=input_shape[-1])
 
 
-        # TODO:写decoder的prompt mask相关的东西，cross attention的mask和attention的mask
+        # TODO: Write decoder prompt mask related things, cross attention mask and attention mask
         prompt = past_prompt
         if prompt is not None and attention_mask is not None:
             # Add prefix attention to the attention mask

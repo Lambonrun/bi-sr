@@ -9,42 +9,42 @@ import re
 
 def parse_prediction(pred_str: str):
     """
-    解析预测字符串，提取 database 和 table。
-    例如: "database: perpetrator, table: perpetrator" -> ("perpetrator", "perpetrator")
+    Parse the prediction string, extract database and table.
+    For example: "database: perpetrator, table: perpetrator" -> ("perpetrator", "perpetrator")
     """
-    # 使用正则表达式来匹配 "database: value, table: value" 格式，忽略大小写和多余的空格
+    # Use regular expression to match "database: value, table: value" format, ignore case and extra spaces
     match = re.search(r"database: (.*?), table: (.*?),", pred_str, re.IGNORECASE)
     if match:
         db_id = match.group(1).strip()
         table = match.group(2).strip()
         return db_id, table
     
-    # 如果正则匹配失败，打印一个警告并返回 None
-    print(f"警告: 无法解析预测字符串: '{pred_str}'")
+    # If regex matching fails, print a warning and return None
+    print(f"Warning: Unable to parse prediction string: '{pred_str}'")
     return None, None
 
 def load_corpus(file_path: str) -> list[str]:
 
     """
-    读取包含JSON对象列表的文件，并将每个对象转换为描述性字符串。
+    Read a file containing a list of JSON objects and convert each object to a descriptive string.
 
-    参数:
-    - file_path (str): JSON文件的路径。
+    Parameters:
+    - file_path (str): Path to the JSON file.
 
-    返回:
-    - list[str]: 由描述性字符串组成的语料库列表。
+    Returns:
+    - list[str]: List of descriptive strings forming the corpus.
     """
     corpus = []
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
-            data = json.load(f) # data 是一个列表
+            data = json.load(f) # data is a list
             
-            # 遍历列表中的每一个JSON对象 (字典)
+            # Iterate through each JSON object (dictionary) in the list
             for item in data:
-                # 将键值对转换为 "key is value" 的形式
+                # Convert key-value pairs to "key: value" format
                 parts = [f"{key}: {value}" for key, value in item.items()]
                 
-                # 用逗号和空格将它们连接成一个完整的字符串
+                # Join them with commas and spaces into a complete string
                 text_representation = ", ".join(parts)
                 
                 corpus.append(text_representation)
@@ -52,9 +52,9 @@ def load_corpus(file_path: str) -> list[str]:
         print("corpus example: ", corpus[0])
                 
     except FileNotFoundError:
-        print(f"错误: 文件 '{file_path}' 未找到。")
+        print(f"Error: File '{file_path}' not found.")
     except json.JSONDecodeError:
-        print(f"错误: 文件 '{file_path}' 不是有效的JSON格式。")
+        print(f"Error: File '{file_path}' is not valid JSON format.")
         
     return corpus
 
@@ -67,50 +67,50 @@ def load_queries(file_path: str):
             questions = data['questions']
             answers = data['answers']
     except FileNotFoundError:
-        print(f"错误: 文件 '{file_path}' 未找到。")
+        print(f"Error: File '{file_path}' not found.")
     except json.JSONDecodeError:
-        print(f"错误: 文件 '{file_path}' 不是有效的JSON格式。")
+        print(f"Error: File '{file_path}' is not valid JSON format.")
         
     return questions, answers
 
 def find_most_similar(query: str, corpus_embeddings: torch.Tensor, model: SentenceTransformer, top_k: int = 5):
     """
-    在一个给定的语料库向量中，为一个查询语句找到最相似的 top_k 个句子。
+    Find the top_k most similar sentences to a query statement in a given corpus vector.
 
-    参数:
-    - query (str): 你要查询的句子。
-    - corpus_embeddings (torch.Tensor): 已经提前计算好的语料库向量矩阵。
-    - model (SentenceTransformer): 使用的句向量模型。
-    - top_k (int): 返回最相似句子的数量。
+    Parameters:
+    - query (str): The sentence you want to query.
+    - corpus_embeddings (torch.Tensor): Pre-computed corpus vector matrix.
+    - model (SentenceTransformer): The sentence vector model used.
+    - top_k (int): Number of most similar sentences to return.
 
-    返回:
-    - a list of tuples: 每个元组包含 (相似度分数, 句子在语料库中的索引)。
+    Returns:
+    - a list of tuples: Each tuple contains (similarity score, index of sentence in corpus).
     """
-    # 1. 将查询语句编码为向量
+    # 1. Encode the query statement as a vector
     query_embedding = model.encode(query, convert_to_tensor=True, device="cuda")
 
-    # 2. 使用 util.cos_sim 计算查询向量与所有语料库向量的余弦相似度
-    #    这个函数非常高效，利用了PyTorch的并行计算能力
+    # 2. Use util.cos_sim to calculate cosine similarity between query vector and all corpus vectors
+    #    This function is very efficient, utilizing PyTorch's parallel computing capabilities
     cos_scores = util.cos_sim(query_embedding, corpus_embeddings)[0]
 
-    # 3. 使用 torch.topk 找到分数最高的 top_k 个结果的索引和分数
-    #    这比手动排序然后切片更高效
+    # 3. Use torch.topk to find the indices and scores of the top_k highest scoring results
+    #    This is more efficient than manual sorting and slicing
     top_results = torch.topk(cos_scores, k=min(top_k, len(corpus_embeddings)))
     
-    # top_results 是一个包含 (values, indices) 的元组
+    # top_results is a tuple containing (values, indices)
     return zip(top_results[0], top_results[1])
 
 def evaluate(all_predictions: list[list[str]], all_answers: list[dict]):
     """
-    计算预测结果的召回率 recall@1, recall@5, recall@10, recall@15.
-    规则: database正确且table在answer中即为正确，大小写不匹配也视为正确。
+    Calculate recall rates for prediction results: recall@1, recall@5, recall@10, recall@15.
+    Rule: Correct if database is correct and table is in answer, case mismatch is also considered correct.
     
-    参数:
-    - all_predictions (list[list[str]]): 所有问题的预测结果列表，每个子列表包含最多15个预测字符串。
-    - all_answers (list[dict]): 对应的标准答案列表。
+    Parameters:
+    - all_predictions (list[list[str]]): List of prediction results for all questions, each sublist contains up to 15 prediction strings.
+    - all_answers (list[dict]): Corresponding list of standard answers.
 
-    返回:
-    - dict: 包含各项平均召回率的字典。
+    Returns:
+    - dict: Dictionary containing average recall rates for each item.
     """
     recall_scores = {'recall@1': [], 'recall@5': [], 'recall@10': [], 'recall@15': []}
     
@@ -139,11 +139,11 @@ def evaluate(all_predictions: list[list[str]], all_answers: list[dict]):
             elif k == 10:
                 recall_scores['recall@10'].append(len(hits) / num_gold_tables)
             elif k == 15:
-                # 确保在列表末尾也计算 recall@15
+                # Ensure recall@15 is also calculated at the end of the list
                 if len(predicted_list) <= 15:
                     recall_scores['recall@15'].append(len(hits) / num_gold_tables)
 
-    # 计算各项召回率的平均值
+    # Calculate the average of each recall rate
     final_recalls = {
         key: (sum(scores) / len(scores) if scores else 0)
         for key, scores in recall_scores.items()
@@ -153,8 +153,8 @@ def evaluate(all_predictions: list[list[str]], all_answers: list[dict]):
 
     
 if __name__ == "__main__":
-    corpus = load_corpus("/root/autodl-tmp/schlink/BIRD_Data/data/merged_table_descriptions.json")
-    questions, answers = load_queries("/root/autodl-tmp/schlink/BIRD_Data/data/dev_20240627/cache/dev_question_generation.json")
+    corpus = load_corpus("/BIRD_Data/data/merged_table_descriptions.json")
+    questions, answers = load_queries("/BIRD_Data/data/dev_20240627/cache/dev_question_generation.json")
     print("question length: ", len(questions))
     print("answer length: ", len(answers))
     print("question example: ", questions[0])
@@ -164,7 +164,7 @@ if __name__ == "__main__":
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print("device: ", device)
     
-    model = SentenceTransformer("/root/autodl-tmp/model_file/Qwen3-Embedding-4B-lora-merged", device=device)
+    model = SentenceTransformer("/model_file/Qwen3-Embedding-4B-lora-merged", device=device)
 
     corpus_embeddings = model.encode(corpus, convert_to_tensor=True, device=device, show_progress_bar=True, batch_size=128)
 
@@ -185,8 +185,8 @@ if __name__ == "__main__":
         print("answers length: ", len(answers))
         raise ValueError("predicted length != answers length")
     else:
-        with open("/root/autodl-tmp/schlink/BIRD_Data/data/dev_20240627/cache/dev_predicted_tables_finetuned.json", "w", encoding="utf-8") as f:
+        with open("/BIRD_Data/data/dev_20240627/cache/dev_predicted_tables_finetuned.json", "w", encoding="utf-8") as f:
             json.dump({"questions": questions, "predicted_tables": predicted, "answers": answers}, f, ensure_ascii=False, indent=4)
-            print("数据保存完成！保存到 /root/autodl-tmp/schlink/BIRD_Data/data/dev_20240627/cache/dev_predicted_tables_finetuned.json")
+            print("Data saving completed! Saved to /BIRD_Data/data/dev_20240627/cache/dev_predicted_tables_finetuned.json")
         recall_results = evaluate(predicted, answers)
-        print("评估结果:", recall_results)
+        print("Evaluation results:", recall_results)

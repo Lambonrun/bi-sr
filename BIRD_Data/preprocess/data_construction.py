@@ -8,7 +8,7 @@ from typing import Optional, List, Dict
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-API_KEY = "sk-9fe9b714a9ad4b6ab83bf7a13ead42ec"
+API_KEY = ""
 MODEL_NAME = "deepseek-chat"
 BASE_URL = "https://api.deepseek.com/v1"
 
@@ -56,9 +56,9 @@ def generate_question(question: str, tables: str):
     </Answer>
     """
     answer = get_completion(prompt, system_prompt=sys_prompt)
-    # 提取<Answer>标签中的内容
+    # Extract content from <Answer> tags
     
-    # 使用正则表达式匹配<Answer>和</Answer>之间的内容
+    # Use regex to match content between <Answer> and </Answer>
     answer_pattern = r'<Answer>(.*?)</Answer>'
     answer_match = re.search(answer_pattern, answer, re.DOTALL)
     
@@ -73,11 +73,11 @@ def generate_question(question: str, tables: str):
 
 def test_single_sample(spider_train_path: str, descriptions_path: str, sample_index: int = 0):
     """
-    测试单个样本的完整数据构建流程。
+    Test the complete data construction process for a single sample.
     """
     print("--- Starting Single Sample Test ---")
 
-    # 1. 加载描述和训练数据
+    # 1. Load description and training data
     print("\n[Step 1] Loading data files...")
     with open(descriptions_path, 'r', encoding='utf-8') as f:
         descriptions = json.load(f)
@@ -88,7 +88,7 @@ def test_single_sample(spider_train_path: str, descriptions_path: str, sample_in
         print(f"Error: Sample index {sample_index} is out of bounds.")
         return
 
-    # 创建查找字典
+    # Create lookup dictionary
     desc_lookup = {}
     for item in descriptions:
         db_id = item['database']
@@ -98,7 +98,7 @@ def test_single_sample(spider_train_path: str, descriptions_path: str, sample_in
             desc_lookup[db_id] = {}
         desc_lookup[db_id][table_name.lower()] = full_text
 
-    # 2. 选择单个样本
+    # 2. Select a single sample
     item = train_data[sample_index]
     print(f"\n[Step 2] Selected sample #{sample_index}:")
     print(json.dumps(item, indent=2))
@@ -108,7 +108,7 @@ def test_single_sample(spider_train_path: str, descriptions_path: str, sample_in
     query = item['SQL'] #SQL corresponds to answer in BIRD
     question = item['question']
 
-    # 3. 解析SQL获取表名
+    # 3. Parse SQL to get table names
     print(f"\n[Step 3] Parsing SQL query to get table names...")
     used_tables = Parser(query).tables
     print(f" -> Parsed tables: {used_tables}")
@@ -116,7 +116,7 @@ def test_single_sample(spider_train_path: str, descriptions_path: str, sample_in
         print(" -> Test failed: Could not parse tables from query.")
         return
 
-    # 4. 获取表描述 (outputs)
+    # 4. Get table descriptions (outputs)
     print("\n[Step 4] Fetching table descriptions (outputs)...")
     outputs = []
     table_lookup_for_db = desc_lookup.get(db_id, {})
@@ -132,7 +132,7 @@ def test_single_sample(spider_train_path: str, descriptions_path: str, sample_in
         print(" -> Test failed: Could not find descriptions for parsed tables.")
         return
         
-    # 5. 生成合成问题 (input)
+    # 5. Generate synthetic questions (input)
     print("\n[Step 5] Generating synthetic question (input)...")
     try:
         synthetic_q = generate_question(question, used_tables)
@@ -141,7 +141,7 @@ def test_single_sample(spider_train_path: str, descriptions_path: str, sample_in
         print(f" -> Test failed: Error during question generation: {e}")
         return
 
-    # 6. 组合最终格式
+    # 6. Combine final format
     print("\n[Step 6] Assembling final data entry...")
     instruction = "Given a user's question, retrieve the most relevant table descriptions from the database."
     data_entry = {
@@ -155,9 +155,9 @@ def test_single_sample(spider_train_path: str, descriptions_path: str, sample_in
 
 def construct_training_data(spider_train_path: str, descriptions_path: str, output_path: str):   
     """ 
-    构建用于嵌入模型指令微调的训练数据 (修复版)。
+    Build training data for embedding model instruction fine-tuning (revised version).
     """
-    # 1. 加载表描述文件
+    # 1. Load table descriptions
     print("Loading table descriptions...")
     with open(descriptions_path, 'r', encoding='utf-8') as f:
         descriptions = json.load(f)
@@ -171,35 +171,35 @@ def construct_training_data(spider_train_path: str, descriptions_path: str, outp
             desc_lookup[db_id] = {}
         desc_lookup[db_id][table_name.lower()] = full_text
 
-    # 2. 加载Spider训练数据
+    # 2. Load Spider training data
     print("Loading Spider training data...")
     with open(spider_train_path, 'r', encoding='utf-8') as f:
         train_data = json.load(f)
 
-    # ★★★【修改点 1】★★★
-    # 在循环开始前，先清空一次文件，确保每次运行都是从头开始。
-    # 这样可以防止重复运行函数时，数据不断累积。
+    # ★★★【Modification Point 1】★★★
+    # Clear the file once before the loop starts to ensure each run starts fresh.
+    # This prevents data accumulation when running the function multiple times.
     if os.path.exists(output_path):
         open(output_path, 'w').close()
 
-    batch_data = [] # 用于暂存一个批次的数据，替换原来的 final_dataset
+    batch_data = [] # Temporarily store batch data, replacing the original final_dataset
     instruction = "Given a user's question, retrieve the most relevant table descriptions from the database."
     total_generated_count = 0
 
     print(f"Starting data construction for {len(train_data)} items...")
-    # 使用 enumerate 来跟踪索引，方便调试
+    # Use enumerate to track index for easy debugging
     for i, item in enumerate(tqdm(train_data, desc="Processing data")):
         db_id = item['db_id']
         #query = item['query']
         query = item['SQL'] #SQL corresponds to answer in BIRD
         question = item['question']
 
-        # 3. 解析SQL，获取表名
+        # 3. Parse SQL to get table names
         used_tables = Parser(query).tables
         if not used_tables:
             continue
         
-        # 4. 获取表描述
+        # 4. Get table descriptions
         outputs = []
         table_lookup_for_db = desc_lookup.get(db_id, {})
         for table in used_tables:
@@ -210,14 +210,14 @@ def construct_training_data(spider_train_path: str, descriptions_path: str, outp
         if not outputs:
             continue
 
-        # 5. 生成合成问题
+        # 5. Generate synthetic questions
         try:
             synthetic_q = generate_question(question, used_tables)
         except Exception as e:
             print(f"\nError generating synthetic question for '{question}': {e}")
             continue
 
-        # 6. 组合成最终格式
+        # 6. Combine into final format
         data_entry = {
             "instruction": instruction,
             "input": synthetic_q,
@@ -226,22 +226,22 @@ def construct_training_data(spider_train_path: str, descriptions_path: str, outp
         batch_data.append(data_entry)
         total_generated_count += 1
         
-        # ★★★【修改点 2】★★★
-        # 每当批次数据达到500条，就以“追加模式”写入文件
+        # ★★★【Modification Point 2】★★★
+        # Whenever batch data reaches 500 items, write to file in "append mode"
         if len(batch_data) >= 50:
-            with open(output_path, 'a', encoding='utf-8') as f: # 模式从 'w' 改为 'a'
+            with open(output_path, 'a', encoding='utf-8') as f: # Mode changed from 'w' to 'a'
                 for entry in batch_data:
-                    # 逐行写入独立的 JSON 对象
+                    # Write independent JSON objects line by line
                     f.write(json.dumps(entry, ensure_ascii=False) + '\n')
             
             print(f"\nProcessed item {i+1}, saved a batch of {len(batch_data)}. Total generated: {total_generated_count}")
-            batch_data = [] # 清空批次列表
+            batch_data = [] # Clear batch list
 
-    # ★★★【修改点 3】★★★
-    # 7. 循环结束后，保存剩余的样本（如果还有的话）
+    # ★★★【Modification Point 3】★★★
+    # 7. After loop ends, save remaining samples (if any)
     if batch_data:
         print(f"\nFinished loop. Saving remaining {len(batch_data)} entries.")
-        with open(output_path, 'a', encoding='utf-8') as f: # 同样使用 'a' 模式
+        with open(output_path, 'a', encoding='utf-8') as f: # Also use 'a' mode
             for entry in batch_data:
                 f.write(json.dumps(entry, ensure_ascii=False) + '\n')
 
@@ -257,7 +257,7 @@ def generate_question_with_retry(
     log_prefix: str = "",
 ):
     """
-    包装 generate_question，增加指数回退重试，提升并发稳定性。
+    Wrap generate_question with exponential backoff retry to improve concurrent stability.
     """
     last_error = None
     for attempt in range(max_retries):
@@ -267,9 +267,9 @@ def generate_question_with_retry(
             last_error = e
             if log_prefix:
                 print(f"{log_prefix} generate_question failed on attempt {attempt+1}/{max_retries}: {e}")
-            # 指数回退等待
+            # Exponential backoff wait
             time.sleep(initial_delay * (2 ** attempt))
-    # 达到最大重试次数仍失败，抛出最后一个异常
+    # Reached maximum retries and still failed, raise the last exception
     raise last_error
 
 
@@ -282,9 +282,9 @@ def _build_entry_for_item(
     log_prefix: str = "",
 ):
     """
-    工作线程函数：为单个样本构建数据条目；
-    - 若 fill_placeholders=True，则失败/条件不满足时返回占位符条目（保持与输入一一对应）。
-    - 若为 False，则返回 None（调用方可自行跳过）。
+    Worker thread function: Build data entry for a single sample;
+    - If fill_placeholders=True, return placeholder entry on failure/unsatisfied conditions (maintain one-to-one correspondence with input).
+    - If False, return None (caller can skip as needed).
     """
     db_id = item.get('db_id')
     query = item.get('SQL')
@@ -300,14 +300,14 @@ def _build_entry_for_item(
         }
 
     try:
-        # 解析SQL获取表名
+        # Parse SQL to get table names
         used_tables = Parser(query).tables if query else []
         if debug and log_prefix:
             print(f"{log_prefix} parsed tables: {used_tables}")
         if not used_tables:
             return _placeholder()
 
-        # 获取表描述
+        # Get table descriptions
         outputs = []
         table_lookup_for_db = desc_lookup.get(db_id, {})
         for table in used_tables:
@@ -319,7 +319,7 @@ def _build_entry_for_item(
         if not outputs:
             return _placeholder()
 
-        # 生成合成问题（带重试）
+        # Generate synthetic questions (with retry)
         try:
             synthetic_q = generate_question_with_retry(
                 question, used_tables, log_prefix=log_prefix
@@ -347,11 +347,11 @@ def construct_training_data_concurrent(
     fill_placeholders: bool = True,
 ):
     """
-    并发版本：使用线程池同时调用模型生成，显著加速整体构建。
-    - max_workers: 并发线程数
-    - flush_every: 每累计多少条写入一次文件
+    Concurrent version: Use thread pool to call model generation simultaneously, significantly accelerating overall construction.
+    - max_workers: Number of concurrent threads
+    - flush_every: How many entries to accumulate before writing to file
     """
-    # 1. 加载表描述文件
+    # 1. Load table description file
     print("Loading table descriptions...")
     with open(descriptions_path, 'r', encoding='utf-8') as f:
         descriptions = json.load(f)
@@ -365,12 +365,12 @@ def construct_training_data_concurrent(
             desc_lookup[db_id] = {}
         desc_lookup[db_id][table_name.lower()] = full_text
 
-    # 2. 加载训练数据
+    # 2. Load training data
     print("Loading training data...")
     with open(spider_train_path, 'r', encoding='utf-8') as f:
         train_data = json.load(f)
 
-    # 3. 清空输出文件
+    # 3. Clear output file
     if os.path.exists(output_path):
         open(output_path, 'w').close()
 
@@ -382,14 +382,14 @@ def construct_training_data_concurrent(
     print(f"Starting concurrent construction over {len(train_data)} items with {max_workers} workers...")
 
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        # 使用 map 按输入顺序产出结果，从而保证输出顺序与输入一致
+        # Use map to produce results in input order, ensuring output order matches input order
         results_iter = executor.map(
             lambda it: _build_entry_for_item(it, desc_lookup, instruction, fill_placeholders),
             train_data,
         )
 
         for result in tqdm(results_iter, total=len(train_data), desc="Concurrent processing"):
-            # 若 fill_placeholders=False，可能返回 None；True 时总返回占位符或真实结果
+            # If fill_placeholders=False, may return None; if True, always returns placeholder or real result
             if result is None:
                 continue
             buffer.append(result)
@@ -397,14 +397,14 @@ def construct_training_data_concurrent(
             if result.get("outputs"):
                 success_count += 1
 
-            # 批量写入（保持顺序，因为迭代顺序与输入一致）
+            # Batch write (maintain order, since iteration order matches input order)
             if len(buffer) >= flush_every:
                 with open(output_path, 'a', encoding='utf-8') as f:
                     for entry in buffer:
                         f.write(json.dumps(entry, ensure_ascii=False) + '\n')
                 buffer = []
 
-    # 写入剩余
+    # Write remaining
     if buffer:
         with open(output_path, 'a', encoding='utf-8') as f:
             for entry in buffer:
@@ -422,10 +422,10 @@ def retry_placeholders_in_output(
     max_to_retry: Optional[int] = None,
 ):
     """
-    单线程：读取已保存的 JSON Lines 文件，定位占位符条目并尝试重新生成，保持顺序不变。
-    直接覆盖原文件（写入到临时文件后原子替换）。
+    Single-threaded: Read saved JSON Lines file, locate placeholder entries and attempt to regenerate, keeping order unchanged.
+    Directly overwrite original file (write to temporary file then atomically replace).
     """
-    # 1) 加载表描述
+    # 1) Load table descriptions
     with open(descriptions_path, 'r', encoding='utf-8') as f:
         descriptions = json.load(f)
 
@@ -438,11 +438,11 @@ def retry_placeholders_in_output(
             desc_lookup[db_id] = {}
         desc_lookup[db_id][table_name.lower()] = full_text
 
-    # 2) 加载训练数据（用于按索引取回原始样本）
+    # 2) Load training data (for retrieving original samples by index)
     with open(spider_train_path, 'r', encoding='utf-8') as f:
         train_data = json.load(f)
 
-    # 3) 读取现有输出（JSON Lines）
+    # 3) Read existing output (JSON Lines)
     lines: List[Dict] = []
     with open(output_path, 'r', encoding='utf-8') as f:
         for line in f:
@@ -452,7 +452,7 @@ def retry_placeholders_in_output(
             try:
                 lines.append(json.loads(line))
             except Exception:
-                # 跳过无法解析的行
+                # Skip lines that cannot be parsed
                 continue
 
     instruction = "Given a user's question, retrieve the most relevant table descriptions from the database."
@@ -472,7 +472,7 @@ def retry_placeholders_in_output(
     regenerated = 0
     still_failed = 0
 
-    # 4) 遍历并尝试重建占位符
+    # 4) Iterate and attempt to rebuild placeholders
     for idx, entry in enumerate(lines):
         if not is_placeholder(entry):
             continue
@@ -504,7 +504,7 @@ def retry_placeholders_in_output(
             regenerated += 1
             print(f"{log_prefix} regenerated successfully.")
 
-    # 5) 覆盖写回（原子替换）
+    # 5) Overwrite back (atomic replacement)
     tmp_path = output_path + '.tmp'
     with open(tmp_path, 'w', encoding='utf-8') as f:
         for obj in lines:
@@ -516,8 +516,8 @@ def retry_placeholders_in_output(
     print(f"Still failed: {still_failed}")
 
 if __name__ == '__main__':
-    # 定义文件路径
-    # 假设此脚本位于 preprocess/ 目录下
+    # Define file paths
+    # Assume this script is located in the preprocess/ directory
     base_dir = os.path.dirname(os.path.abspath(__file__))
     #spider_data_dir = os.path.join(base_dir, '..', 'spider_data')
     bird_data_dir = os.path.join(base_dir, '..', 'data')
@@ -526,7 +526,7 @@ if __name__ == '__main__':
     descriptions_path = os.path.join(bird_data_dir, "merged_table_descriptions.json")
     output_path = os.path.join(bird_data_dir, "embedding_training_data.json")
 
-    # 检查输入文件是否存在
+    # Check if input files exist
     if not os.path.exists(bird_train_path) or not os.path.exists(descriptions_path):
         print(f"Error: Make sure '{bird_train_path}' and '{descriptions_path}' exist.")
     else:

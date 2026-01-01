@@ -28,3 +28,8 @@ echo '''starting to compare without knowledge for ves'''
 python3 -u ./src/evaluation_ves.py --db_root_path ${db_root_path} --predicted_sql_path ${predicted_sql_path} --data_mode ${data_mode} \
 --ground_truth_path ${ground_truth_path} --num_cpus ${num_cpus} --mode_gt ${mode_gt} --mode_predict ${mode_predict} \
 --diff_json_path ${diff_json_path} --meta_time_out ${meta_time_out}
+
+
+python -u D:/Code/schemelink-wu/BIRD_Data/llm/src/evaluation_ves.py --db_root_path 'D:/Code/schemelink-wu/BIRD_Data/dev_20240627/dev_databases/' --predicted_sql_path 'D:/Code/schemelink-wu/BIRD_Data/data_cache/dev/Bi-SR-main/' --data_mode 'dev' --ground_truth_path 'D:/Code/schemelink-wu/BIRD_Data/dev_20240627/' --num_cpus 16 --meta_time_out 30 --mode_gt 'gt' --mode_predict 'gpt' --diff_json_path 'D:/Code/schemelink-wu/BIRD_Data/dev_20240627/dev.json'
+
+python -u D:/Code/schemelink-wu/BIRD_Data/llm/src/evaluation.py --db_root_path 'D:/Code/schemelink-wu/BIRD_Data/dev_20240627/dev_databases/' --predicted_sql_path 'D:/Code/schemelink-wu/BIRD_Data/data_cache/dev/Bi-SR-main/' --data_mode 'dev' --ground_truth_path 'D:/Code/schemelink-wu/BIRD_Data/dev_20240627/' --num_cpus 16 --meta_time_out 60 --mode_gt 'gt' --mode_predict 'gpt' --diff_json_path 'D:/Code/schemelink-wu/BIRD_Data/dev_20240627/dev.json'

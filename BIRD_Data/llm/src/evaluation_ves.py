@@ -180,5 +180,3 @@ if __name__ == '__main__':
     print_data(score_lists, count_lists)
     print('===========================================================================================')
     print("Finished evaluation")
-
-

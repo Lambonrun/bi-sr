@@ -52,7 +52,7 @@ def package_sqls(sql_path, db_root_path, mode='gpt', data_mode='dev'):
     clean_sqls = []
     db_path_list = []
     if mode == 'gpt':
-        sql_data = json.load(open(sql_path + 'predict_' + data_mode + '.json', 'r'))
+        sql_data = json.load(open(sql_path + 'predict_' + data_mode + '.json', 'r', encoding='utf-8'))
         for idx, sql_str in sql_data.items():
             if type(sql_str) == str:
                 sql, db_name = sql_str.split('\t----- bird -----\t')
@@ -62,7 +62,7 @@ def package_sqls(sql_path, db_root_path, mode='gpt', data_mode='dev'):
             db_path_list.append(db_root_path + db_name + '/' + db_name + '.sqlite')
 
     elif mode == 'gt':
-        sqls = open(sql_path + data_mode + '_gold.sql')
+        sqls = open(sql_path + data_mode + '.sql')
         sql_txt = sqls.readlines()
         # sql_txt = [sql.split('\t')[0] for sql in sql_txt]
         for idx, sql_str in enumerate(sql_txt):
